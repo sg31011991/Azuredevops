@@ -1,0 +1,54 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+#trigger:
+#- demo_branch
+
+#pool:
+  #default
+
+#stages:
+  #- stage: 
+    #displayName: validate
+    #pool: 'Azure Pipelines'
+    jobs:
+      - job: 
+        steps:
+          #- task: TerraformInstaller@0
+            #inputs:
+              #terraformVersion: '0.14.9'
+            #displayName: Install '0.14.9'
+          - task: TerraformTaskV3@3
+            displayName: Terraform init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/webapp'
+              backendServiceArm: 'Azure subscription 1 (ed4b07b6-a9ea-407f-b280-fb9008f2d861)'
+              backendAzureRmResourceGroupName: 'dev-Demo-Webapp-RG'
+              backendAzureRmStorageAccountName: 'demostate3101'
+              backendAzureRmContainerName: 'constg31'
+              backendAzureRmKey: 'WMsXi7ZN+rKn/+K2fKrr2EkcgDEKTVZDOzi6xeyA1YTrzeGI6uXt3rvds26jHZFjbHKzCwNU61H2+AStX0sDXw=='
+          - task: TerraformTaskV2@2
+            displayName: Terraform plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/webapp'
+              commandOptions: '-var-file="$(System.DefaultWorkingDirectory)/webapp/env/dev/terraform.tfvars" -out="plan.out"'
+              environmentServiceNameAzureRM: 'Azure subscription 1 (ed4b07b6-a9ea-407f-b280-fb9008f2d861)'
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: 'webapp'
+              Contents: |
+                **/*
+                !.terraform/**/*
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/artifacts'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+          

@@ -1,0 +1,45 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+#trigger:
+#- demo_branch
+
+#pool:
+  #default
+
+#stages:
+  #- stage: 
+    #displayName: deploy
+    jobs:
+      - job: 
+        steps:
+          #- task: TerraformInstaller@0
+            #inputs:
+              #terraformVersion: '0.14.9'
+            #displayName: Install '0.14.9'
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              artifactName: drop
+              downloadPath: $(System.ArtifactsDirectory)
+          - task: TerraformTaskV3@3
+            displayName: Terraform init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.ArtifactsDirectory)/drop/artifacts'
+              backendServiceArm: 'Azure subscription 1 (ed4b07b6-a9ea-407f-b280-fb9008f2d861)'
+              backendAzureRmResourceGroupName: 'dev-Demo-Webapp-RG'
+              backendAzureRmStorageAccountName: 'demostate3101'
+              backendAzureRmContainerName: 'constg31'
+              backendAzureRmKey: 'WMsXi7ZN+rKn/+K2fKrr2EkcgDEKTVZDOzi6xeyA1YTrzeGI6uXt3rvds26jHZFjbHKzCwNU61H2+AStX0sDXw=='
+          - task: TerraformTaskV3@3
+            displayName: Terraform apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.ArtifactsDirectory)/drop/artifacts'
+              #commandOptions: '-var-file="$(System.DefaultWorkingDirectory)/drop/artifacts/env/dev/terraform.tfvars"'
+              commandOptions: "plan.out"
+              environmentServiceNameAzureRM: 'Azure subscription 1 (ed4b07b6-a9ea-407f-b280-fb9008f2d861)'

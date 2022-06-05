@@ -1,0 +1,12 @@
+trigger:
+- demo_branch
+
+pool:
+  default
+stages:
+    - stage: validate
+      jobs:
+          - template: ./validate.yaml
+    - stage: deploy
+      jobs:
+        - template: ./deploy.yml

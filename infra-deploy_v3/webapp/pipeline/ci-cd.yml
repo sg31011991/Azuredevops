@@ -1,0 +1,73 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - IAC_Demo_param
+
+
+parameters:
+  - name: source_location
+    values:
+      - '/webapp'
+  - name: variables_file_path
+    values:
+      - '$(System.DefaultWorkingDirectory)/webapp/env/dev/terraform.tfvars'
+  - name: environment_name
+    values:
+      - 'dev'
+  - name: service_principle_name
+    values:
+      - 'Azure subscription 1 (ed4b07b6-a9ea-407f-b280-fb9008f2d861)'
+  - name: backend_storage_resourceGroupName
+    values:
+      - 'dev-Demo-Webapp-RG'
+  - name: backend_storage_account_name
+    values:
+      - 'demostate3101'
+  - name: backend_storage_container_name
+    values:
+      - 'constg31'
+  - name: backend_storage_state_file_name
+    values:
+      - 'dev.tfstate'
+
+pool:
+    default
+
+stages:
+  - stage: validate
+    jobs:
+      - template: validate.yaml
+        parameters:
+          source_location :  ${{ parameters.source_location }}
+          variables_file_path :  ${{ parameters.variables_file_path }}
+          environment_name :  ${{ parameters.environment_name }}
+          service_principle_name :  ${{ parameters.service_principle_name }}
+          backend_storage_resourceGroupName :  ${{ parameters.backend_storage_resourceGroupName }}
+          backend_storage_account_name :  ${{ parameters.backend_storage_account_name }}
+          backend_storage_container_name :  ${{ parameters.backend_storage_container_name }}
+          backend_storage_state_file_name :  ${{ parameters.backend_storage_state_file_name }}
+          
+
+  - stage: deploy_${{ parameters.environment_name }}
+    jobs:
+      - deployment: dev
+        timeoutInMinutes: 0
+        displayName: deploy_${{ parameters.environment_name }}
+        environment: ${{ parameters.environment_name }} 
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+              - template: deploy.yml
+                parameters:
+                  source_location :  ${{ parameters.source_location }}
+                  variables_file_path :  ${{ parameters.variables_file_path }}
+                  environment_name :  ${{ parameters.environment_name }}
+                  service_principle_name :  ${{ parameters.service_principle_name }}
+                  backend_storage_resourceGroupName :  ${{ parameters.backend_storage_resourceGroupName }}
+                  backend_storage_account_name :  ${{ parameters.backend_storage_account_name }}
+                  backend_storage_container_name :  ${{ parameters.backend_storage_container_name }}
+                  backend_storage_state_file_name :  ${{ parameters.backend_storage_state_file_name }}
